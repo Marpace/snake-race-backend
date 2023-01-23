@@ -48,6 +48,7 @@ io.on('connection', (socket) => {
   socket.on("updateGameType", handleUpdateGameType);
   socket.on("leaveRoom", handleLeaveRoom);
   socket.on("switchPlayer", handleSwitchPlayer)
+  socket.on("countdown", handleCountdown);
 
   function handleNewGame(name) {
     let roomName = makeId(5);
@@ -110,7 +111,6 @@ io.on('connection', (socket) => {
       socket.emit('notEnoughPlayers')
       return;
     }
-    console.log(socket.number)
 
     io.sockets.in(data.gameCode).emit("updateGameMessage", "")
 
@@ -124,11 +124,11 @@ io.on('connection', (socket) => {
   
     // io.sockets.in(code).emit("countdown")
     // io.sockets.in(code).emit("reset")
-    // setTimeout(() => {
-    data.gameType === "Pedal to the metal" 
-    ? startGameTimeout(data.gameCode)
-    : startGameInterval(data.gameCode)
-    // }, 4000);
+    setTimeout(() => {
+      data.gameType === "Pedal to the metal" 
+      ? startGameTimeout(data.gameCode)
+      : startGameInterval(data.gameCode)
+    }, 3000);
   }
 
   function handleKeydown(keyCode) {
@@ -180,6 +180,36 @@ io.on('connection', (socket) => {
   function handleUpdateGameType(gameType) {
     socket.broadcast.emit("updateGameType", gameType);
   }
+
+  function handleCountdown(code) {
+    let count = 3;
+    io.sockets.in(code).emit("updateCounter", count)
+    const counterInterval = setInterval(() => {
+      count--
+      io.sockets.in(code).emit("updateCounter", count);
+      if(count <= 0) {
+        io.sockets.in(code).emit("clearGameMessage")
+        clearInterval(counterInterval);
+      } 
+    }, 1000);
+  }
+
+  // function emitCounter(count, code) {
+  //   // setTimeout(() => {
+  //   //   count--;
+  //   //   console.log(count)
+  //   //   io.sockets.in(code).emit("updateCounter", count);
+  //   //   if(count >= 2) emitCounter();
+  //   // }, 1000)
+
+  //   const counterInterval = setInterval((count, code) => {
+  //     count--
+  //     console.log(count);
+  //     io.sockets.in(code).emit("updateCounter", count);
+  //     if(count <= 0) clearInterval(counterInterval);
+  //   }, 1000);
+
+  // }
 
   socket.on("disconnecting", () => {
     leaveRoom();
