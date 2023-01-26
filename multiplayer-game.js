@@ -123,22 +123,24 @@ function gameLoop(state) {
   }
 
   //if players go out of bounds 
+  
   if (playerOne.pos.x < 0 || playerOne.pos.x >= GRID_SIZE || playerOne.pos.y < 0 || playerOne.pos.y >= GRID_SIZE) {
     result.winner = 2;
     result.foodEaten = false
   }
-
+  
   if (playerTwo.pos.x < 0 || playerTwo.pos.x >= GRID_SIZE || playerTwo.pos.y < 0 || playerTwo.pos.y >= GRID_SIZE) {
+    // uncommnent this to handle a draw situation
+    // result.winner === 2 ? result.winner = 0 : result.winner = 2;
     result.winner = 1;
-    result.foodEaten = false
+    result.foodEaten = false;
   }
-
   
   //move snakes and check if they crash into them selves
   if (playerOne.vel.x || playerOne.vel.y) {
     for (let cell of playerOne.snake) {
       if (cell.x === playerOne.pos.x && cell.y === playerOne.pos.y) {
-        result.winner = 2;
+        result.winner = 2 
         result.foodEaten = false
       }
     }

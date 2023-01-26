@@ -48,7 +48,6 @@ io.on('connection', (socket) => {
   socket.on("updateGameType", handleUpdateGameType);
   socket.on("leaveRoom", handleLeaveRoom);
   socket.on("switchPlayer", handleSwitchPlayer)
-  socket.on("countdown", handleCountdown);
 
   function handleNewGame(name) {
     let roomName = makeId(5);
@@ -80,6 +79,7 @@ io.on('connection', (socket) => {
       return;
     }
 
+
     socketRooms[socket.id] = gameCode;
     rooms[gameCode].playerCount = 2;
     rooms[gameCode].playerTwoName = nickname;
@@ -103,6 +103,7 @@ io.on('connection', (socket) => {
       author: "server",
       id: makeId(6)
     })
+    socket.broadcast.emit("postAlert", `${nickname} has joined the game`)
   }
 
   function handleStartGame(data) {
@@ -111,9 +112,10 @@ io.on('connection', (socket) => {
       socket.emit('notEnoughPlayers')
       return;
     }
+    console.log(rooms[data.gameCode].playerCount)
 
-    io.sockets.in(data.gameCode).emit("updateGameMessage", "")
 
+    goal = data.goal;
     if (data.gameType === "Pedal to the metal") {
       FRAME_RATE = 5
     } else {
@@ -122,8 +124,7 @@ io.on('connection', (socket) => {
     gameState[data.gameCode] = createGameState(data.gameType, snakeColors[0], snakeColors[1]);
 
   
-    // io.sockets.in(code).emit("countdown")
-    // io.sockets.in(code).emit("reset")
+    startCountdown(data.gameCode)
     setTimeout(() => {
       data.gameType === "Pedal to the metal" 
       ? startGameTimeout(data.gameCode)
@@ -181,7 +182,7 @@ io.on('connection', (socket) => {
     socket.broadcast.emit("updateGameType", gameType);
   }
 
-  function handleCountdown(code) {
+  function startCountdown(code) {
     let count = 3;
     io.sockets.in(code).emit("updateCounter", count)
     const counterInterval = setInterval(() => {
@@ -193,7 +194,7 @@ io.on('connection', (socket) => {
       } 
     }, 1000);
   }
-
+  
   // function emitCounter(count, code) {
   //   // setTimeout(() => {
   //   //   count--;
@@ -233,6 +234,7 @@ io.on('connection', (socket) => {
       }
       io.sockets.in(code).emit("playerOneLeft", code)
       io.sockets.in(code).emit("postMessage", data)
+      io.sockets.in(code).emit("postAlert", `${playerName} has left the game`)
     }
     if(socket.number == 2) {
       const playerName = rooms[code].playerTwoName
@@ -244,6 +246,8 @@ io.on('connection', (socket) => {
         id: makeId(6)
       }
       io.sockets.in(code).emit("postMessage", data)
+      io.sockets.in(code).emit("postAlert", `${playerName} has left the game`)
+
     }
   }
 
@@ -257,6 +261,8 @@ io.on('connection', (socket) => {
 
 
 });
+
+
 
 
 function startGameInterval(roomName) {
@@ -279,7 +285,7 @@ function startGameInterval(roomName) {
     // }
     const gameIntervalId = setInterval(() => {
     const result = gameLoop(gameState[roomName]);
-    if(!result.winner) {
+    if(result.winner === false) {
       emitGameState(roomName, result.foodEaten)
       if(gameState[roomName].gameType !== "All you can eat"){
         if(playerOneFoodCount === goal){
