@@ -52,8 +52,8 @@ io.on('connection', (socket) => {
 
 
   socket.on("showHeight", handleShowHeight)
-  function handleShowHeight(height) {
-    console.log(height)
+  function handleShowHeight(data) {
+    console.log(data)
   }
 
 
