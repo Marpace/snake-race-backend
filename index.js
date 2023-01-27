@@ -49,6 +49,14 @@ io.on('connection', (socket) => {
   socket.on("leaveRoom", handleLeaveRoom);
   socket.on("switchPlayer", handleSwitchPlayer)
 
+
+
+  socket.on("showHeight", handleShowHeight)
+  function handleShowHeight(height) {
+    console.log(height)
+  }
+
+
   function handleNewGame(name) {
     let roomName = makeId(5);
     socketRooms[socket.id] = roomName;
